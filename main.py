@@ -12,7 +12,47 @@ import re
 # === Config inicial ===
 
 
+# 1) Define tu mapeo raw → estándar
+KEY_MAPPING = {
+    "Dirección":        "Direccion",
+    "Cant. Ambientes":  "Ambientes",
+    "Cant. Dormitorios":"Dormitorio",
+    "Cant. Baños":      "Baños",
+    "Estado":           "Estado",
+    "Antiguedad":       "Antiguedad",
+    "Disposición":      "Disposicion",
+    "Orientación":      "Orientacion",
+    "Tipo de Piso":     "Tipo_piso",
+    "Expensas":         "Expensas",
+    "Tipo de Unidad":   "Tipo_unidad",
+    "Tipo de operación":"Tipo_operacion",
+    "Precio":           "Precio",
+    "Sup. Cubierta":    "Sup_cubierta",
+    "Sup. Total":       "Sup_total",
+    "Cant. Pisos":      "Cantidad_pisos",
+    "Deptos. por Piso": "Deptos_por_piso",
+    "Estado Edificio":  "Estado_edificio"
+}
 
+def limpiar_data_argen(data):
+    # paso A: parsear raw "clave: valor"
+    raw = {}
+    for entry in data:
+        if ':' in entry:
+            key, val = entry.split(':', 1)
+            key = key.strip()
+            val = val.strip()
+            if key:
+                raw[key] = val
+
+    # paso B: renombrar según el mapeo
+    renamed = {}
+    for raw_key, val in raw.items():
+        new_key = KEY_MAPPING.get(raw_key, raw_key)  # si no está en el mapeo, deja la clave original
+        renamed[new_key] = val
+
+    # si quieres devolverlo dentro de una lista como antes:
+    return [renamed]
 
 def normalizar_barrio(barrio):
     # Convertir a minúsculas si querés URLs homogéneas (opcional)
@@ -267,7 +307,7 @@ def main():
             #data_list
             try:
             # Limpiar todos los elementos
-                data_limpia = [limpiar_data(propiedad) for propiedad in data_list]
+                data_limpia = [limpiar_data_argen(propiedad) for propiedad in data_list]
 
             # Guardar en JSON
                 with open("full-data_argenprop.json", "w", encoding="utf-8") as f:
