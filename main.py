@@ -1,7 +1,7 @@
 from constants import *
 from scrappagecaba import scrap_page
-#from scrappageargen import scrap_page_argen
-#from scrappagezona import scrap_page_zona
+from scrappagezona import scrap_page_zona
+# from scrappageargen import scrap_page_argen
 from crawler import SeleniumGetHTML
 from helpers import listToJSON
 import os
@@ -33,6 +33,72 @@ KEY_MAPPING = {
     "Deptos. por Piso": "Deptos_por_piso",
     "Estado Edificio":  "Estado_edificio"
 }
+
+def replace_icons(clave):                   # Esta función se usa solo para la opción de ZonaProp
+    replacements = {
+        'icon-stotal': 'Total',
+        'icon-scubierta': 'Cubierta',
+        'icon-ambiente': 'Ambientes',
+        'icon-bano': 'Baños',
+        'icon-cochera': 'Cocheras',
+        'icon-dormitorio': 'Dormitorios',
+        'icon-toilete': 'Toilettes',
+        'icon-antiguedad': 'Antigüedad',
+        'icon-disposicion': 'Disposición',
+        'icon-orientacion': 'Orientación',
+        'icon-luminosidad': 'Luminosidad'
+    }
+    
+    nueva_clave = replacements[clave] if clave in replacements else clave  
+    return nueva_clave
+
+def limpiar_data_zona(data):
+    result = {
+        "titulo": None, "operacion": None, "precio": None,
+        "direccion": None, "ubicacion": None, "ambientes": None,
+        "dormitorio": None, "expensas": None, "ambientes": None,
+        "baños": None, "m2_totales": None, "m2_cubiertos": None,
+        "balcon": None, "antigüedad": None,'disposicion': None
+    }
+    
+    property_dict = {}
+
+    try:        
+    # Paso 2: extraer título, operación, dirección
+        ubicacion = data[0]
+        titulo = data[1]
+        direccion = data[-3]
+        operacion = data[-2]
+        precio = data[-1]
+
+    # Paso 3: buscar claves que tengan formato "clave: valor"
+        property_dict = {
+            "Titulo": titulo,
+            "Operacion": operacion,
+            "Direccion": direccion,
+            "Ubicacion": ubicacion,
+            "Precio": precio
+        }
+
+        for i in range(2, len(data)-3):
+            if ':' in data[i]:
+                partes = data[i].split(':', 1)
+                clave = partes[0].strip()
+                valor = partes[1].strip()
+                if clave and valor:
+                    nueva_clave = replace_icons(clave)                    
+                    if nueva_clave != 'Antigüedad':
+                        property_dict[nueva_clave] = valor
+                    else:
+                        property_dict[nueva_clave] = valor + ' años'
+    
+    except Exception as e:
+        result["error"] = str(e)
+        result["raw"] = data
+    #print(property_dict)
+    return property_dict
+
+
 
 def limpiar_data_argen(data):
     # paso A: parsear raw "clave: valor"
@@ -134,7 +200,6 @@ def main():
     except ValueError:
         print("Error: Solo escribe 1 o 2")
         return
-    
     
 
 
@@ -253,7 +318,7 @@ def main():
             #data_list
             try:
             # Limpiar todos los elementos
-                data_limpia = [limpiar_data(propiedad) for propiedad in data_list]
+                data_limpia = [limpiar_data_zona(propiedad) for propiedad in data_list]
 
             # Guardar en JSON
                 with open("full-data_zonaprop.json", "w", encoding="utf-8") as f:
@@ -264,12 +329,12 @@ def main():
                 print(f"Error al guardar archivos de datos: {e}")
 
             # Convertir a JSON y exportar a Excel
-            try:
-                for lst in data_list:
-                    listToJSON(lst, result_dict)
-                toExcel(result_dict)
-            except Exception as e:
-                print(f"Error al generar JSON o Excel: {e}")
+            #try:
+            #    for lst in data_list:
+            #        listToJSON(lst, result_dict)
+            #    toExcel(result_dict)
+            #except Exception as e:
+            #    print(f"Error al generar JSON o Excel: {e}")
     elif option == 3:
             index = 1
             #barrio_encoded = barrio.replace(" ", "%20")
@@ -318,12 +383,12 @@ def main():
                 print(f"Error al guardar archivos de datos: {e}")
 
             # Convertir a JSON y exportar a Excel
-            try:
-                for lst in data_list:
-                    listToJSON(lst, result_dict)
-                toExcel(result_dict)
-            except Exception as e:
-                print(f"Error al generar JSON o Excel: {e}")
+            #try:
+            #    for lst in data_list:
+            #        listToJSON(lst, result_dict)
+            #    toExcel(result_dict)
+            #except Exception as e:
+            #    print(f"Error al generar JSON o Excel: {e}")
     else:
         print("Opción inválida")
 
