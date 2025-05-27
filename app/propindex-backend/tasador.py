@@ -40,9 +40,10 @@ def obtener_comparables(lat, lon, ambientes, banos, rango_ant, max_km):
     remax = pd.read_json("datos_geolocalizados_remax.json", orient="records")
     mudafy = pd.read_json("datos_geolocalizados_mudafy.json", orient="records")
     argen = pd.read_json("datos_geolocalizados_argenprop.json", orient="records")
-    #print(mudafy)
+    zona = pd.read_json("datos_geolocalizados_zonaprop.json", orient="records")
+    print(zona)
     mudafy['Publicada_en']="Mudafy"
-    df= pd.concat([cabaprop, remax, mudafy,argen], ignore_index=True)
+    df= pd.concat([cabaprop, remax, mudafy,argen,zona], ignore_index=True)
     df = df[['Direccion', 'Precio', 'Ambientes', 'Baños', 'Total', 'Cubierta', 'Antigüedad', 'Publicada_en', 'Categoria_antigüedad', 'lat', 'lon']]
 
     comparables = df[
